@@ -56,14 +56,13 @@ export default Component.extend({
     }
   },
 
-  getAutocomplete() {
+  getAutocomplete(){
     if(isEmpty(this.get('autocomplete'))){
-      if(document && window){
-        let inputElement = document.getElementById(this.elementId).getElementsByTagName('input')[0],
-            google = this.get('google') || window.google, //TODO: check how to use the inyected google object
-            autocomplete = new google.maps.places.Autocomplete(inputElement, { types: this._typesToArray(), componentRestrictions: this.get('restrictions') });
-        this.set('autocomplete', autocomplete);
-      }
+      let inputElement = document.getElementById(this.elementId).getElementsByTagName('input')[0],
+          google = this.get('google') || window.google; //TODO: check how to use the inyected google object
+      this.set('autocomplete', new google.maps.places.Autocomplete(inputElement));
+        /**,
+	{ types: this._typesToArray(), componentRestrictions: this.get('restrictions') }));*/
     }
   },
 
@@ -73,10 +72,15 @@ export default Component.extend({
     this.set('value', place.formatted_address);
   },
 
-  _callCallback(callback, place) {
+  _callCallback(callback) {
     let callbackFn = this.attrs[callback];
+    let place      = this.get('autocomplete').getPlace();
     if (isEqual(typeOf(callbackFn), 'function')) {
-      callbackFn(place);
+        if(typeof place === "undefined") {
+            callbackFn(this.get("value"));
+        } else {
+            callbackFn(place);
+        }
     } else {
       let actionName = this.get(callback);
       if (isPresent(this.get('handlerController')) && isPresent(actionName)) {
